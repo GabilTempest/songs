@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Catalog</title>
+</head>
+<body>
+<style>
+    .container {
+        display: flex;
+        justify-content: space-evenly;
+        flex-wrap: wrap;
+    }
+
+    .product {
+        width: 31%;
+        margin-bottom: 40px;
+    }
+
+    .product-image {
+        width: 100%;
+    }
+</style>
+
+<div class="controllers">
+    <input type="text" id="page" value="1">
+    <select id="size" value="10">
+        <option value="10">10</option>
+        <option value="5">5</option>
+        <option value="2">2</option>
+    </select>
+    <select id="direction" value="ASC">
+        <option value="ASC">asc</option>
+        <option value="DESC">desc</option>
+    </select>
+    <!--<button id="pagination-confirm">OK</button>-->
+</div>
+<div class="container">
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    makeRequest();
+
+    // $('#pagination-confirm').click(makeRequest);
+
+    $('#page').change(makeRequest);
+    $('#size').change(makeRequest);
+    $('#direction').change(makeRequest);
+
+    function makeRequest() {
+        $.ajax({
+            url: 'http://localhost:8080/car/page',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(getPaginationRequest()),
+            success: function (res) {
+                appendCarsToContainer(res.content)
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        })
+    }
+
+    function appendCarsToContainer(cars) {
+        let $container = $('.container');
+        $container.html('');
+        for (let car of cars) {
+            let img = car.pathToImage ?
+                'http://localhost:8080/img/' + car.pathToImage
+                : 'http://denrakaev.com/wp-content/uploads/2015/03/no-image.png';
+            $container.append(`
+                <div class="product">
+                    <h3 class="product-title">
+                        ${car.name}
+                    </h3>
+                    <img class="product-image" src="${img}">
+                    <p class="product-country">${car.countryName}</p>
+                    <p class="product-volume">${car.volume}</p>
+                    <p class="product-price">$${car.price}</p>
+                </div>
+            `)
+        }
+    }
+
+    function getPaginationRequest() {
+        return {
+            page: $('#page').val() - 1,
+            size: $('#size').val(),
+            sortRequest: {
+                field: 'name',
+                direction: $('#direction').val()
+            }
+        };
+    }
+
+</script>
+</body>
+</html>
